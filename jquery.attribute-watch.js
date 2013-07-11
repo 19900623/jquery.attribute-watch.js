@@ -1,36 +1,49 @@
-$.fn.watch = function(props, callback, timeout){
-	if(!timeout)
-		timeout = 10;
+jQuery.fn.watch = function (props, callback, timeout) {
+	var $ = jQuery;
 	
-	return this.each(function(){
-		var el 		= $(this),
-			func 	= function(){ __check.call(this, el) },
-			data 	= {	props: 	props.split(","),
-						func: 	callback,
-						vals: 	[] };
-		$.each(data.props, function(i) { data.vals[i] = el.css(data.props[i]); });
+	if (!timeout) {
+		timeout = 10;
+	}
+	
+	return this.each(function () {
+		var el = $(this), 
+			func = function () {
+				__check.call(this, el)
+			}, 
+			data = {
+				props : props.split(','),
+				func : callback,
+				vals : []
+			};
+			
+		$.each(data.props, function (i) {
+			data.vals[i] = (!el.css(data.props[i]) ? el.attr(data.props[i]) : el.css(data.props[i]));
+		});
+		
 		el.data(data);
-		if (typeof (this.onpropertychange) == "object"){
-			el.bind("propertychange", callback);
-		} else if ($.browser.mozilla){
-			el.bind("DOMAttrModified", callback);
+
+		if (( typeof (this.onpropertychange) == 'object') || ($.browser.mozilla)) {
+			el.bind('DOMAttrModified', callback);
 		} else {
 			setInterval(func, timeout);
 		}
 	});
+	
 	function __check(el) {
-		var data 	= el.data(),
+		var data = el.data(),
 			changed = false,
-			temp	= "";
-		for(var i=0;i < data.props.length; i++) {
-			temp = el.css(data.props[i]);
-			if(data.vals[i] != temp){
+			temp = '';
+			
+		for (var i = 0; i < data.props.length; i++) {
+			temp = (!el.css(data.props[i]) ? el.attr(data.props[i]) : el.css(data.props[i]));
+			if (data.vals[i] != temp) {
 				data.vals[i] = temp;
 				changed = true;
 				break;
 			}
 		}
-		if(changed && data.func) {
+		
+		if (changed && data.func) {
 			data.func.call(el, data);
 		}
 	}
